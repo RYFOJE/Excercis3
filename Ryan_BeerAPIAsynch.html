@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        #getBeer {
+            float: none;
+            width: 15%;
+        }
+
+        .BtnButton {
+            float: left;
+            margin: 2px;
+        }
+
+        .bottomBtn {
+            width: 7.5%;
+        }
+
+        #outputStuff {
+            margin-top: 2%;
+        }
+
+        body {
+            background: lightblue;
+        }
+    </style>
+
+    <script language="JavaScript" type="text/JavaScript">
+
+        // The value of the current beer's index
+        var currIndex = 0;
+        var beersArray;
+
+        /*
+         * Method Name: getNext()
+         * Use: This method will go through the beers array and change the current beer index displayed on screen by +1
+         * Accepts: Nothing
+         * Returns: Nothing
+         */
+        function getNext() {
+
+            // If we add 1 to the currIndex and it overflows the array, do this
+            // (The reason I do this is so the user can cycle through the beer array infinitely without overflowing)
+            // On the user side, when they hit the end of the array it will go back to the beginning
+            if (currIndex + 1 >= beersArray.length) {
+                currIndex = 0;
+            }
+
+            // If the next value is still within the array
+            else {
+                currIndex++;
+            }
+
+            displayFromIndex(currIndex);
+
+        } // End getNext() function
+
+        /*
+         * Method Name: getPrevious()
+         * Use: This method will go through the beers array and change the current beer index displayed on screen by -1
+         * Accepts: Nothing
+         * Returns: An array corresponding to the received information
+         */
+        function getPrevious() {
+
+            // If we subtract 1 to the currIndex and it overflows the array, do this
+            // (The reason I do this is so the user can cycle through the beer array infinitely without overflowing)
+            // On the user side, when they hit the beginning of the array it will go back to the end
+            if (currIndex - 1 < 0) {
+                currIndex = beersArray.length - 1;
+            }
+
+            // If the next value is still within the array
+            else {
+                currIndex++;
+            }
+
+            displayFromIndex(currIndex);
+        } // End getPrevious() function
+
+        /*
+         * Method Name: getBeers()
+         * Use: This method will make a AJAX call to a remote server and fetch all types of beer
+         * Accepts: Nothing
+         * Returns: An array corresponding to the received information
+         */
+        function getBeers(button) {
+
+            // If the beersArray has already been called, do not run it again
+            if( typeof beersArray === 'undefined' ) {
+
+                // Create a request object. All the AJAX request information and communication will be used by calling
+                // this method.
+                var request = new XMLHttpRequest();
+                var url = 'https://rsd05guo67.execute-api.us-east-2.amazonaws.com/default/beerstore';
+
+                // This is what the function will do when the state of the request changes
+                // Note: This function is automatically called when the state of request.onready (which is a variable)
+                // changes. What causes this function to change is when the state of the download changes (even when it passes the statement)
+                request.onreadystatechange = function () {
+
+
+                    // Do this when the data has been successfully loaded
+
+                    // To understand these two statements look at these two websites:
+                    // request.status (this is a http response) https://www.restapitutorial.com/httpstatuscodes.html
+                    // request.readyState (this is the current state of the AJAX call) https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/readyState
+                    // Therefore you can read this statement as :
+                    // if
+                    // the request status (request.status) is OK (HTTP - 200)
+                    // and
+                    // the ready state of request (request.readyState) is DONE (status 4)
+                    if (request.status === 200 && request.readyState === 4) {
+
+                        // This line of code will transform the received information from the AJAX call into an array
+                        // This need to be done since the information received from the API is a string which represents
+                        // an array. Therefore we need to parse
+                        beersArray = JSON.parse(request.responseText);
+
+                        // This logs in the console that the information was done loading (used for debugging)
+                        console.log("Done loading");
+
+
+                        // Display the first element of the array once the AJAX call is done
+                        displayFromIndex(0);
+
+                    } // End if
+
+                } // End onreadystatechange function
+
+                // This is where things get confusing. As I previously stated, the above code is a function declaration.
+                // and that code has not run yet since request.onreadystatechange has not changed.
+                // In the next part, we will make the actual AJAX call to the API
+
+                // We open a connection to the url specified. We then specify our intents ("GET") since we want to download
+                // a JSON file.
+                request.open('GET', url);
+
+                // We specify the API-KEY which is used to uniquely identify who is requesting access to the API.
+                // This is like a password
+                request.setRequestHeader('x-api-key', '32isbi7Lug22v8CKogygf5b2EZwpdFhS2OotvWem')
+
+                // Here we send the request to the remote server.
+                request.send();
+
+                // Once the request has been sent and the web browser receives the whole response succefully.
+                // A call to the function request.onreadystatechange = function () will be made.
+                // that is the function we specified above on line 103
+
+
+            } // End if (beersArray === NULL)
+
+        } // End getBeers() function
+
+        /*
+         * Method Name: displayFromIndex()
+         * Use: This method will display to the user the beer which corresponds to the index
+         * Accepts: An index
+         * Returns: Nothing
+         */
+        function displayFromIndex(index) {
+
+            var text = "";
+
+            // This is the part where we collect the information from our array and add it to the body of our html file
+            text += beersArray[index].name;
+            document.getElementById("pics").src = beersArray[index].image_url;
+            document.getElementById("outputStuff").innerHTML = text;
+
+        } // End displayFromIndex function
+
+
+    </script>
+
+</head>
+
+<body>
+
+<input type="button" id="getBeer" class="BtnButton" onclick="getBeers(this);" value="Get Beer Data Asynchronously"/><br>
+
+<input type="button"  class="BtnButton bottomBtn" onclick="getNext();" value="Next Beer"/>
+<input type="button"  class="BtnButton bottomBtn" onclick="getPrevious();" value="Previous Beer"/>
+
+<br>
+
+<div id="outputStuff"></div>
+
+<br />
+
+<img id="pics" src="">
+
+</body>
+
+
+</body>
+</html>
